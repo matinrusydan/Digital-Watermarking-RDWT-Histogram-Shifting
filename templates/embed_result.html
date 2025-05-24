@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasil Embedding - {{ result.method_name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .result-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .success-header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #d4f4d4, #e8f5e8);
+            border-radius: 15px;
+            border-left: 4px solid #4ecdc4;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: #4ecdc4;
+            margin-bottom: 1rem;
+        }
+
+        .image-comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .image-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 2px solid #e1e5e9;
+            transition: all 0.3s ease;
+        }
+
+        .image-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .image-card h3 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .image-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            border: 1px solid #e1e5e9;
+        }
+
+        .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .watermark-info {
+            background: linear-gradient(135deg, #fff8e1, #fffbf0);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid #ffa726;
+        }
+
+        .method-details {
+            background: linear-gradient(135deg, #e8f5e8, #d4f4d4);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .parameter-item {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 1rem;
+            border-radius: 10px;
+        }
+
+        .parameter-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .parameter-value {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .download-section {
+            background: linear-gradient(135deg, #cce7ff, #99d6ff);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .download-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        .capacity-bar {
+            background: #e1e5e9;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .capacity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ecdc4, #44a08d);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .capacity-text {
+            text-align: center;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .navigation-section {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+    @media (max-width: 768px) {
+            .image-comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .download-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .navigation-section {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-shield-alt"></i> CapCai
+            </a>
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/compare"><i class="fas fa-balance-scale"></i> Compare</a></li>
+                <li><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Success Header -->
+        <div class="success-header">
+            <div class="success-icon">✅</div>
+            <h1>Embedding Berhasil!</h1>
+            <p>Watermark telah berhasil disembunyikan menggunakan metode <strong>{{ result.method_name }}</strong></p>
+        </div>
+
+        <div class="result-container">
+            <!-- Image Comparison -->
+            <div class="image-comparison">
+                <div class="image-card">
+                    <h3>📷 Gambar Asli</h3>
+                    <img src="{{ result.original_image }}" alt="Original Image">
+                </div>
+                <div class="image-card">
+                    <h3>🔐 Gambar Watermarked</h3>
+                    <img src="{{ result.watermarked_image }}" alt="Watermarked Image">
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value">{{ result.psnr }}</div>
+                    <div class="stat-label">PSNR (dB)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✍️</div>
+                    <div class="stat-value">{{ result.watermark_text|length }}</div>
+                    <div class="stat-label">Karakter Watermark</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💾</div>
+                    <div class="stat-value">{{ result.watermark_length }}</div>
+                    <div class="stat-label">Bits Digunakan</div>
+                </div>
+                {% if result.capacity_used_percent %}
+                <div class="stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-value">{{ result.capacity_used_percent }}%</div>
+                    <div class="stat-label">Kapasitas Terpakai</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Watermark Information -->
+            <div class="watermark-info">
+                <h3>💬 Informasi Watermark</h3>
+                <div style="background: rgba(255,255,255,0.7); padding: 1rem; border-radius: 10px; margin-top: 1rem;">
+                    <strong>Teks Watermark:</strong>
+                    <p style="margin-top: 0.5rem; font-style: italic; color: #555;">
+                        "{{ result.watermark_text }}"
+                    </p>
+                </div>
+                
+                {% if result.capacity %}
+                <div style="margin-top: 1.5rem;">
+                    <strong>📊 Penggunaan Kapasitas:</strong>
+                    <div class="capacity-bar">
+                        <div class="capacity-fill" style="width: {{ result.capacity_used_percent }}%;"></div>
+                    </div>
+                    <div class="capacity-text">
+                        {{ result.watermark_length }} / {{ result.capacity }} bits 
+                        ({{ result.capacity_used_percent }}% terpakai)
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Method Details -->
+            <div class="method-details">
+                <h3>⚙️ Detail Metode: {{ result.method_name }}</h3>
+                <p>{{ result.method_info.description }}</p>
+                
+                {% if result.method_info.parameters %}
+                <div class="parameter-grid">
+                    {% for key, value in result.method_info.parameters.items() %}
+                        {% if key not in ['auto_parameters'] %}
+                        <div class="parameter-item">
+                            <div class="parameter-label">{{ key|title|replace('_', ' ') }}</div>
+                            <div class="parameter-value">{{ value }}</div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if result.method_info.analysis %}
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(255,255,255,0.7); border-radius: 10px;">
+                    <strong>🔍 Analisis Gambar:</strong>
+                    <ul style="margin-top: 0.5rem; padding-left: 2rem;">
+                        {% for key, value in result.method_info.analysis.items() %}
+                        <li>{{ key|title|replace('_', ' ') }}: {{ value }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Download Section -->
+            <div class="download-section">
+                <h3>📥 Download Hasil</h3>
+                <p>Simpan file-file berikut untuk ekstraksi dan recovery watermark:</p>
+                <div class="download-buttons">
+                    <a href="{{ url_for('download_file', filename=result.watermarked_filename) }}" 
+                       class="btn btn-primary">
+                        📷 Download Gambar Watermarked
+                    </a>
+                    <a href="{{ url_for('download_file', filename=result.overhead_filename) }}" 
+                       class="btn btn-secondary">
+                        📄 Download Overhead Data
+                    </a>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                    ⚠️ <strong>Penting:</strong> Simpan kedua file dengan aman. 
+                    File overhead data diperlukan untuk ekstraksi dan recovery watermark.
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation-section">
+            <a href="{{ url_for('embed_watermark_method', method=result.method) }}" 
+               class="btn btn-info">
+                🔄 Embed Lagi
+            </a>
+            <a href="{{ url_for('extract_watermark_method', method=result.method) }}" 
+               class="btn btn-success">
+                🔍 Extract Watermark
+            </a>
+            <a href="{{ url_for('recover_image_method', method=result.method) }}" 
+               class="btn btn-warning">
+                🔧 Recover Image
+            </a>
+            <a href="{{ url_for('attack_test_method', method=result.method) }}" 
+               class="btn btn-danger">
+                ⚔️ Test Serangan
+            </a>
+            <a href="{{ url_for('index') }}" 
+               class="btn btn-outline">
+                🏠 Kembali ke Home
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Auto-hide flash messages
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+
+        // Smooth scrolling untuk anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add loading animation untuk download buttons
+        document.querySelectorAll('.download-buttons a').forEach(button => {
+            button.addEventListener('click', function() {
+                const original = this.innerHTML;
+                this.innerHTML = '⏳ Downloading...';
+                this.style.opacity = '0.7';
+                
+                setTimeout(() => {
+                    this.innerHTML = original;
+                    this.style.opacity = '1';
+                }, 2000);
+            });
+        });
+
+        // Capacity bar animation
+        window.addEventListener('load', function() {
+            const capacityFill = document.querySelector('.capacity-fill');
+            if (capacityFill) {
+                const targetWidth = capacityFill.style.width;
+                capacityFill.style.width = '0%';
+                setTimeout(() => {
+                    capacityFill.style.width = targetWidth;
+                }, 500);
+            }
+        });
+
+        // Add hover effects to stat cards
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 15px 30px rgba(0,0,0,0.2)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+            });
+        });
+
+        // Image comparison functionality
+        function toggleImageComparison() {
+            const images = document.querySelectorAll('.image-card img');
+            const button = document.createElement('button');
+            button.textContent = 'Toggle Comparison';
+            button.className = 'btn btn-info';
+            button.style.margin = '1rem auto';
+            button.style.display = 'block';
+            
+            let isOriginal = true;
+            button.addEventListener('click', function() {
+                images.forEach(img => {
+                    img.style.opacity = isOriginal ? '0.5' : '1';
+                });
+                isOriginal = !isOriginal;
+                this.textContent = isOriginal ? 'Show Difference' : 'Show Normal';
+            });
+            
+            document.querySelector('.image-comparison').appendChild(button);
+        }
+
+        // Initialize comparison if multiple images
+        if (document.querySelectorAll('.image-card').length > 1) {
+            toggleImageComparison();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual Watermarking System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-shield-alt"></i> CapCai
+            </a>
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/compare"><i class="fas fa-balance-scale"></i> Compare</a></li>
+                <li><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1><i class="fas fa-shield-alt"></i> Dual Watermarking System</h1>
+            <p>Advanced image watermarking with dual method support: Traditional Histogram Shifting and Modern RDWT (Redundant Discrete Wavelet Transform)</p>
+        </div>
+
+        <!-- Alert Section -->
+        <div id="alert-container"></div>
+
+        <!-- Statistics Section -->
+        <div class="stats-section">
+            <div class="stat-item">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Watermarking Methods</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">5</div>
+                <div class="stat-label">Supported Formats</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">8</div>
+                <div class="stat-label">Attack Tests</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Recovery Support</div>
+            </div>
+        </div>
+
+        <!-- Methods Grid -->
+        <div class="methods-grid">
+            <!-- Histogram Shifting Method -->
+            <div class="method-card">
+                <div class="method-header">
+                    <div class="method-icon histogram-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div>
+                        <div class="method-title">Histogram Shifting</div>
+                    </div>
+                </div>
+                
+                <div class="method-description">
+                    Traditional watermarking method using histogram modification for fast and simple image watermarking with good visual quality.
+                </div>
+
+                <div class="features-list">
+                    <h4><i class="fas fa-plus-circle"></i> Advantages:</h4>
+                    <ul>
+                        <li>Simple and fast implementation</li>
+                        <li>Good visual quality (high PSNR)</li>
+                        <li>Perfect for natural images</li>
+                        <li>Minimal overhead data</li>
+                    </ul>
+                </div>
+
+                <div class="features-list">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Best for:</h4>
+                    <ul>
+                        <li>High-speed applications</li>
+                        <li>Short text watermarks</li>
+                        <li>Low attack risk environments</li>
+                        <li>Quick prototyping</li>
+                    </ul>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="/embed/histogram_shifting" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Embed
+                    </a>
+                    <a href="/extract/histogram_shifting" class="btn btn-secondary">
+                        <i class="fas fa-search"></i> Extract
+                    </a>
+                    <a href="/recover/histogram_shifting" class="btn btn-success">
+                        <i class="fas fa-undo"></i> Recover
+                    </a>
+                    <a href="/attack_test/histogram_shifting" class="btn btn-info">
+                        <i class="fas fa-bug"></i> Test
+                    </a>
+                </div>
+            </div>
+
+            <!-- RDWT Method -->
+            <div class="method-card">
+                <div class="method-header">
+                    <div class="method-icon rdwt-icon">
+                        <i class="fas fa-wave-square"></i>
+                    </div>
+                    <div>
+                        <div class="method-title">True RDWT</div>
+                    </div>
+                </div>
+                
+                <div class="method-description">
+                    Advanced watermarking using Redundant Discrete Wavelet Transform with automatic parameter optimization and high attack resistance.
+                </div>
+
+                <div class="features-list">
+                    <h4><i class="fas fa-plus-circle"></i> Advantages:</h4>
+                    <ul>
+                        <li>Highly resistant to attacks</li>
+                        <li>Automatic parameter optimization</li>
+                        <li>Large capacity and flexible</li>
+                        <li>Perfect image recovery support</li>
+                    </ul>
+                </div>
+
+                <div class="features-list">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Best for:</h4>
+                    <ul>
+                        <li>High security applications</li>
+                        <li>Long text watermarks</li>
+                        <li>High attack risk environments</li>
+                        <li>Systems requiring reversibility</li>
+                    </ul>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="/embed/rdwt" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Embed
+                    </a>
+                    <a href="/extract/rdwt" class="btn btn-secondary">
+                        <i class="fas fa-search"></i> Extract
+                    </a>
+                    <a href="/recover/rdwt" class="btn btn-success">
+                        <i class="fas fa-undo"></i> Recover
+                    </a>
+                    <a href="/attack_test/rdwt" class="btn btn-info">
+                        <i class="fas fa-bug"></i> Test
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Section -->
+        <div class="features-section">
+            <h2><i class="fas fa-star"></i> System Features</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <div class="feature-title">Multi-Format Support</div>
+                    <div class="feature-description">
+                        Supports PNG, JPG, JPEG, BMP, and TIFF image formats with automatic optimization.
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="feature-title">Attack Resistance</div>
+                    <div class="feature-description">
+                        Comprehensive attack testing including noise, filtering, compression, and geometric attacks.
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-undo-alt"></i>
+                    </div>
+                    <div class="feature-title">Perfect Recovery</div>
+                    <div class="feature-description">
+                        Complete reversible watermarking with perfect original image recovery capability.
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <div class="feature-title">Auto Parameters</div>
+                    <div class="feature-description">
+                        Intelligent parameter optimization based on image characteristics and watermark requirements.
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="feature-title">Quality Metrics</div>
+                    <div class="feature-description">
+                        Real-time PSNR calculation and quality assessment with detailed performance analytics.
+                    </div>
+                </div>
+
+                <div class="feature-item">
+                    <div class="feature-icon">
+                        <i class="fas fa-download"></i>
+                    </div>
+                    <div class="feature-title">Easy Export</div>
+                    <div class="feature-description">
+                        One-click download of watermarked images and overhead data files for later use.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Dual Watermarking System. Advanced image watermarking with dual method support.</p>
+            <p>Built with Flask, OpenCV, and modern web technologies.</p>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div class="loading" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <script>
+        // Utility functions
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alert-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} show`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'error' ? 'exclamation-triangle' : type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                ${message}
+                <button type="button" class="close" onclick="this.parentElement.remove()" style="float: right; background: none; border: none; font-size: 1.2rem; cursor: pointer;">&times;</button>
+            `;
+            alertContainer.appendChild(alert);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (alert.parentElement) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        function showLoading() {
+            document.getElementById('loadingOverlay').classList.add('show');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.remove('show');
+        }
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add loading state to method buttons
+        document.querySelectorAll('.btn[href^="/"]').forEach(button => {
+            button.addEventListener('click', function(e) {
+                showLoading();
+                // Hide loading after navigation (in case of same-page navigation)
+                setTimeout(hideLoading, 3000);
+            });
+        });
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add entrance animations
+            const cards = document.querySelectorAll('.method-card, .feature-item');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+
+            // Show welcome message
+            setTimeout(() => {
+                showAlert('Welcome to the Dual Watermarking System! Choose a method to get started.', 'info');
+            }, 1000);
+        });
+
+        // API Integration Functions
+        async function checkCapacity(width, height, method) {
+            try {
+                const response = await fetch('/api/capacity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        width: width,
+                        height: height,
+                        method: method
+                    })
+                });
+                
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Capacity check error:', error);
+                return null;
+            }
+        }
+
+        // Add hover effects for better interactivity
+        document.querySelectorAll('.method-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+
+        // Add click effects for buttons
+        document.querySelectorAll('.btn').forEach(button => {
+            button.addEventListener('mousedown', function() {
+                this.style.transform = 'translateY(-2px) scale(0.98)';
+            });
+            
+            button.addEventListener('mouseup', function() {
+                this.style.transform = 'translateY(-2px) scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>

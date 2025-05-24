@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recovery Results - Image Recovery</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .success-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+            animation: slideInDown 0.8s ease-out;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .image-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        .image-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .watermarked-card::before {
+            background: linear-gradient(90deg, #ff6b6b, #ee5a52);
+        }
+
+        .recovered-card::before {
+            background: linear-gradient(90deg, #4ecdc4, #44a08d);
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+        }
+
+        .image-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .image-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .watermarked-icon {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+        }
+
+        .recovered-icon {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+        }
+
+        .image-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .image-subtitle {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .image-container {
+            position: relative;
+            background: #f8f9fa;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+            height: 300px;
+            cursor: pointer;
+        }
+
+        .image-display {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: white;
+            transition: transform 0.3s ease;
+        }
+
+        .image-display:hover {
+            transform: scale(1.05);
+        }
+
+        .placeholder-image {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            color: #6c757d;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .zoom-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .image-container:hover .zoom-overlay {
+            opacity: 1;
+        }
+
+        .image-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .info-item {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .info-label {
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .image-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .stats-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            animation: slideInUp 1s ease-out;
+        }
+
+        .stats-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .stats-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .stats-header h3 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: none;
+            animation: slideInDown 0.5s ease-out;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #99d6ff;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 90vw;
+            max-height: 90vh;
+            position: relative;
+            overflow: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .modal-image {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        @keyframes slideInDown {
+            0% {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInUp {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+
+            .image-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('index') }}" class="logo">
+                <i class="fas fa-shield-alt"></i> CapCai
+            </a>
+            <ul class="nav-links">
+                <ul class="nav-links">
+                <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="{{ url_for('embed_watermark_method') }}"><i class="fas fa-plus-circle"></i> Embed</a></li>
+                <li><a href="{{ url_for('recover_page') }}"><i class="fas fa-undo"></i> Recover</a></li>
+                <li><a href="{{ url_for('about') }}"><i class="fas fa-info-circle"></i> About</a></li>
+            </ul>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1>Recovery Results</h1>
+            <p>Your image has been successfully recovered using {{ result.method_name }}</p>
+            <div class="success-badge">
+                ✅ Recovery Completed Successfully
+            </div>
+        </div>
+
+        <!-- Alert Messages -->
+        <div id="alertContainer"></div>
+
+        <!-- Results Grid -->
+        <div class="results-grid">
+            <!-- Watermarked Image Card -->
+            <div class="image-card watermarked-card">
+                <div class="image-header">
+                    <div class="image-icon watermarked-icon">📷</div>
+                    <div>
+                        <div class="image-title">Watermarked Image</div>
+                        <div class="image-subtitle">Image with embedded watermark</div>
+                    </div>
+                </div>
+                
+                <div class="image-container" onclick="openModal('watermarked')">
+                    <img id="watermarkedImg" class="image-display" src="data:image/png;base64,{{ result.watermarked_image }}" alt="Watermarked Image">
+                    <div class="zoom-overlay">🔍 Click to zoom</div>
+                </div>
+
+                <div class="image-info">
+                    <div class="info-item">
+                        <div class="info-label">Method</div>
+                        <div class="info-value">{{ result.method_name }}</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Status</div>
+                        <div class="info-value">Watermarked</div>
+                    </div>
+                </div>
+
+                <div class="image-actions">
+                    <button class="btn btn-outline" onclick="downloadImage('watermarked')">
+                        💾 Download
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recovered Image Card -->
+            <div class="image-card recovered-card">
+                <div class="image-header">
+                    <div class="image-icon recovered-icon">✨</div>
+                    <div>
+                        <div class="image-title">Recovered Image</div>
+                        <div class="image-subtitle">Original image without watermark</div>
+                    </div>
+                </div>
+                
+                <div class="image-container" onclick="openModal('recovered')">
+                    <img id="recoveredImg" class="image-display" src="data:image/png;base64,{{ result.recovered_image }}" alt="Recovered Image">
+                    <div class="zoom-overlay">🔍 Click to zoom</div>
+                </div>
+
+                <div class="image-info">
+                    <div class="info-item">
+                        <div class="info-label">Quality (PSNR)</div>
+                        <div class="info-value">{{ result.psnr_recovery }} dB</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Status</div>
+                        <div class="info-value">Recovered</div>
+                    </div>
+                </div>
+
+                <div class="image-actions">
+                    <button class="btn btn-success" onclick="downloadImage('recovered')">
+                        💾 Download Original
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recovery Statistics -->
+        <div class="stats-section">
+            <div class="stats-header">
+                <h3>📊 Recovery Statistics</h3>
+                <p>Detailed information about the recovery process</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-value">{{ "%.1f"|format((result.psnr_recovery / 20)|round(1)) }}s</div>
+                    <div class="stat-label">Processing Time</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">🎯</div>
+                    <div class="stat-value">{{ result.psnr_recovery }} dB</div>
+                    <div class="stat-label">Recovery Quality</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-value">{% if result.psnr_recovery >= 30 %}A+{% elif result.psnr_recovery >= 25 %}A{% elif result.psnr_recovery >= 20 %}B+{% else %}B{% endif %}</div>
+                    <div class="stat-label">Grade</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">🔧</div>
+                    <div class="stat-value">{{ result.method_name }}</div>
+                    <div class="stat-label">Method Used</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{{ url_for('recover_page') }}" class="btn btn-primary">
+                🔄 Recover Another Image
+            </a>
+            <a href="{{ url_for('embed_watermark') }}" class="btn btn-outline">
+                📝 Embed New Watermark
+            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-outline">
+                🏠 Back to Home
+            </a>
+        </div>
+    </div>
+
+    <!-- Image Modal -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <img id="modalImage" class="modal-image" alt="Full size image">
+            <div style="text-align: center; margin-top: 1rem;">
+                <h3 id="modalTitle">Image Preview</h3>
+                <p id="modalDescription">Full size preview</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store result data globally for download functions
+        window.resultData = {
+            watermarked_image: "{{ result.watermarked_image }}",
+            recovered_image: "{{ result.recovered_image }}",
+            method: "{{ result.method }}",
+            recovered_filename: "{{ result.recovered_filename }}"
+        };
+
+        // Modal functions
+        function openModal(imageType) {
+            const modal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalDescription = document.getElementById('modalDescription');
+
+            if (imageType === 'watermarked') {
+                modalImage.src = "data:image/png;base64," + window.resultData.watermarked_image;
+                modalTitle.textContent = 'Watermarked Image';
+                modalDescription.textContent = 'Image containing the embedded watermark';
+            } else {
+                modalImage.src = "data:image/png;base64," + window.resultData.recovered_image;
+                modalTitle.textContent = 'Recovered Original Image';
+                modalDescription.textContent = 'Original image without watermark';
+            }
+
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('imageModal');
+            modal.classList.remove('show');
+        }
+
+        // Download functions
+        function downloadImage(imageType) {
+            let imageData, filename;
+            
+            if (imageType === 'watermarked') {
+                imageData = "data:image/png;base64," + window.resultData.watermarked_image;
+                filename = 'watermarked_image.png';
+            } else {
+                imageData = "data:image/png;base64," + window.resultData.recovered_image;
+                filename = window.resultData.recovered_filename || 'recovered_original.png';
+            }
+            
+            // Create download link
+            const link = document.createElement('a');
+            link.href = imageData;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showAlert(`${filename} downloaded successfully!`, 'success');
+        }
+
+        // Alert system
+        function showAlert(message, type = 'info') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} show`;
+            alert.innerHTML = `
+                <strong>${type.charAt(0).toUpperCase() + type.slice(1)}:</strong> ${message}
+            `;
+            
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('imageModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Initialize page when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            showAlert('Recovery process completed successfully! Your original image has been restored.', 'success');
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

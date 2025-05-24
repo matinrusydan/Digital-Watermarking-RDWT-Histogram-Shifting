@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CapCai - Extract Watermark</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+        }
+
+        .histogram-badge {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52) !important;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            color: white;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.9);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .info-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .info-text {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .requirements-list {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .requirements-list li {
+            margin-bottom: 0.5rem;
+        }
+
+        .form-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .file-upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fafafa;
+        }
+
+        .file-upload-area:hover,
+        .file-upload-area.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .file-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .file-upload-text {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-upload-hint {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .file-preview {
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .file-preview.show {
+            display: block;
+        }
+
+        .preview-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+        }
+
+        .preview-icon {
+            font-size: 2rem;
+        }
+
+        .preview-info {
+            flex: 1;
+        }
+
+        .preview-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .preview-size {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            display: none;
+            font-weight: 500;
+        }
+
+        .alert.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .alert-info {
+            background: #cce7ff;
+            color: #004085;
+            border-left: 4px solid #007bff;
+        }
+
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        .loading-text {
+            color: white;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+
+        .loading-text small {
+            opacity: 0.7;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                padding: 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .form-card {
+                padding: 1rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="#" onclick="goHome()" class="logo">
+                <i class="fas fa-shield-alt"></i> CapCai
+            </a>
+            <ul class="nav-links">
+                <li><a href="#" onclick="goHome()"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="#" onclick="goToEmbed()"><i class="fas fa-plus-circle"></i> Embed</a></li>
+                <li><a href="#" onclick="goToRecover()"><i class="fas fa-undo"></i> Recover</a></li>
+                <li><a href="#" onclick="goToAbout()"><i class="fas fa-info-circle"></i> About</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <div class="method-badge" id="methodBadge">
+                Histogram Shifting
+            </div>
+            <h1>Extract Watermark</h1>
+            <p>Ekstrak teks watermark yang tersembunyi dari gambar watermarked menggunakan metode Histogram Shifting atau True RDWT (Redundant DWT)</p>
+        </div>
+
+        <!-- Info Section -->
+        <div class="info-section">
+            <div class="info-title">
+                ℹ️ Informasi Ekstraksi
+            </div>
+            <div class="info-text">
+                Untuk mengekstrak watermark, Anda memerlukan:
+                <ul class="requirements-list">
+                    <li>Gambar watermarked (hasil dari proses embedding)</li>
+                    <li>File overhead data (.json) yang dihasilkan saat embedding</li>
+                    <li>Metode yang sama dengan saat embedding</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Extraction Form -->
+        <div class="form-card">
+            <form id="extractForm" method="POST" action="/recover/histogram_shifting" enctype="multipart/form-data">
+                <!-- Watermarked Image Upload -->
+                <div class="form-group">
+                    <label class="form-label">
+                        🖼️ Gambar Watermarked
+                    </label>
+                    <div class="file-upload-area" id="imageUploadArea">
+                        <div class="file-icon">📁</div>
+                        <div class="file-upload-text">Klik untuk memilih gambar watermarked</div>
+                        <div class="file-upload-hint">atau drag & drop file di sini</div>
+                        <input type="file" id="watermarked_image" name="watermarked_image" accept=".png,.jpg,.jpeg,.bmp,.tiff" style="display: none;">
+                    </div>
+                    <div class="file-preview" id="imagePreview"></div>
+                </div>
+
+                <!-- Overhead Data Upload -->
+                <div class="form-group">
+                    <label class="form-label">
+                        📄 File Overhead Data
+                    </label>
+                    <div class="file-upload-area" id="overheadUploadArea">
+                        <div class="file-icon">📋</div>
+                        <div class="file-upload-text">Klik untuk memilih file overhead data (.json)</div>
+                        <div class="file-upload-hint">File JSON yang dihasilkan saat embedding</div>
+                        <input type="file" id="overhead_data" name="overhead_data" accept=".json" style="display: none;">
+                    </div>
+                    <div class="file-preview" id="overheadPreview"></div>
+                </div>
+
+                <!-- Method Selection (Hidden field for server) -->
+                <input type="hidden" id="method" name="method" value="histogram_shifting">
+
+                <!-- Submit Buttons -->
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary" id="extractBtn">
+                        🔍 Extract Watermark
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="goHome()">
+                        ← Back to Home
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading" id="loadingOverlay">
+        <div>
+            <div class="spinner"></div>
+            <div class="loading-text">
+                Mengekstrak watermark...<br>
+                <small>Proses ini mungkin memakan waktu beberapa detik</small>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation functions
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        function goToEmbed() {
+            window.location.href = '/embed';
+        }
+
+        function goToRecover() {
+            window.location.href = '/recover';
+        }
+
+        function goToAbout() {
+            window.location.href = '/about';
+        }
+
+        // Wrap everything in IIFE to avoid global variable conflicts
+        (function() {
+            // Private variables
+            let method = 'histogram_shifting';
+            let imageData = null;
+            let overheadData = null;
+
+            // File upload setup function
+            function setupFileUpload(uploadAreaId, inputId, previewId) {
+                const uploadArea = document.getElementById(uploadAreaId);
+                const input = document.getElementById(inputId);
+                const preview = document.getElementById(previewId);
+
+                // Click to upload
+                uploadArea.addEventListener('click', () => {
+                    input.click();
+                });
+
+                // Drag and drop
+                uploadArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.add('dragover');
+                });
+
+                uploadArea.addEventListener('dragleave', () => {
+                    uploadArea.classList.remove('dragover');
+                });
+
+                uploadArea.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadArea.classList.remove('dragover');
+                    
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        input.files = files;
+                        handleFileSelect(files[0], preview, inputId);
+                    }
+                });
+
+                // File selection
+                input.addEventListener('change', (e) => {
+                    if (e.target.files.length > 0) {
+                        handleFileSelect(e.target.files[0], preview, inputId);
+                    }
+                });
+            }
+
+            function handleFileSelect(file, previewElement, inputId) {
+                const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                
+                previewElement.innerHTML = `
+                    <div class="preview-item">
+                        <div class="preview-icon">${getFileIcon(file.type)}</div>
+                        <div class="preview-info">
+                            <div class="preview-name">${file.name}</div>
+                            <div class="preview-size">${fileSize} MB</div>
+                        </div>
+                    </div>
+                `;
+                previewElement.classList.add('show');
+
+                // Store file data based on input type
+                if (inputId === 'watermarked_image' && file.type.startsWith('image/')) {
+                    prepareImageForProcessing(file);
+                } else if (inputId === 'overhead_data' && file.name.toLowerCase().endsWith('.json')) {
+                    prepareOverheadData(file);
+                }
+            }
+
+            function prepareImageForProcessing(imageFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imageData = e.target.result;
+                };
+                reader.readAsDataURL(imageFile);
+            }
+
+            function prepareOverheadData(overheadFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        overheadData = JSON.parse(e.target.result);
+                        // Update method based on overhead data
+                        if (overheadData.method) {
+                            // Map method name sesuai dengan route Flask
+                            if (overheadData.method === 'true_rdwt' || overheadData.method === 'rdwt') {
+                                method = 'rdwt';
+                            } else {
+                                method = overheadData.method;
+                            }
+                            updateMethodDisplay();
+                        }
+                    } catch (error) {
+                        console.error('Error parsing overhead data:', error);
+                        showAlert('Format file overhead data tidak valid', 'error');
+                    }
+                };
+                reader.readAsText(overheadFile);
+            }
+
+            function updateMethodDisplay() {
+                const methodBadge = document.getElementById('methodBadge');
+                const methodInput = document.getElementById('method');
+                const form = document.getElementById('extractForm');
+                
+                if (method === 'histogram_shifting') {
+                    methodBadge.textContent = 'Histogram Shifting';
+                    methodBadge.className = 'method-badge histogram-badge';
+                    form.action = '/recover/histogram_shifting';
+                } else if (method === 'rdwt') {
+                    methodBadge.textContent = 'True RDWT';
+                    methodBadge.className = 'method-badge';
+                    form.action = '/recover/rdwt';
+                }
+                
+                methodInput.value = method;
+            }
+
+            function getFileIcon(fileType) {
+                if (fileType.startsWith('image/')) return '🖼️';
+                if (fileType.includes('json')) return '📄';
+                return '📁';
+            }
+
+            function showAlert(message, type) {
+                // Remove existing alerts
+                const existingAlerts = document.querySelectorAll('.alert');
+                existingAlerts.forEach(alert => alert.remove());
+
+                // Create new alert
+                const alert = document.createElement('div');
+                alert.className = `alert alert-${type} show`;
+                alert.textContent = message;
+
+                // Insert before form
+                const form = document.querySelector('.form-card');
+                form.parentNode.insertBefore(alert, form);
+
+                // Auto hide after 5 seconds
+                setTimeout(() => {
+                    alert.classList.remove('show');
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            }
+
+            // Form submission with validation
+            function handleFormSubmission(e) {
+                e.preventDefault();
+                
+                const imageFile = document.getElementById('watermarked_image').files[0];
+                const overheadFile = document.getElementById('overhead_data').files[0];
+                
+                // Validation
+                if (!imageFile) {
+                    showAlert('Harap pilih gambar watermarked', 'error');
+                    return;
+                }
+                
+                if (!overheadFile) {
+                    showAlert('Harap pilih file overhead data', 'error');
+                    return;
+                }
+
+                // Check file types
+                const validImageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/bmp', 'image/tiff'];
+                if (!validImageTypes.includes(imageFile.type)) {
+                    showAlert('Format gambar tidak valid. Gunakan PNG, JPG, JPEG, BMP, atau TIFF.', 'error');
+                    return;
+                }
+
+                if (!overheadFile.name.toLowerCase().endsWith('.json')) {
+                    showAlert('File overhead data harus berformat JSON', 'error');
+                    return;
+                }
+
+                // Check file sizes
+                const maxSize = 16 * 1024 * 1024; // 16MB
+                if (imageFile.size > maxSize) {
+                    showAlert('Ukuran gambar terlalu besar. Maksimal 16MB.', 'error');
+                    return;
+                }
+
+                // Show loading
+                document.getElementById('loadingOverlay').classList.add('show');
+                document.getElementById('extractBtn').disabled = true;
+
+                // Use normal form submission
+                e.target.submit();
+            }
+
+            // Initialize page
+            document.addEventListener('DOMContentLoaded', function() {
+                // Initialize file uploads
+                setupFileUpload('imageUploadArea', 'watermarked_image', 'imagePreview');
+                setupFileUpload('overheadUploadArea', 'overhead_data', 'overheadPreview');
+
+                // Form submission handling
+                document.getElementById('extractForm').addEventListener('submit', handleFormSubmission);
+
+                // Update method display
+                updateMethodDisplay();
+            });
+
+            // Hide loading on page load (in case of back button)
+            window.addEventListener('load', function() {
+                document.getElementById('loadingOverlay').classList.remove('show');
+                document.getElementById('extractBtn').disabled = false;
+            });
+
+            // Prevent form resubmission on browser back
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    document.getElementById('loadingOverlay').classList.remove('show');
+                    document.getElementById('extractBtn').disabled = false;
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

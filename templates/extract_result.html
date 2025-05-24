@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasil Ekstraksi Watermark - {{ result.method_name }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .navbar {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .result-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .method-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .histogram-badge {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+        }
+
+        .rdwt-badge {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .text-comparison {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 1.5rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .text-box {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .original-text {
+            border-left: 4px solid #28a745;
+        }
+
+        .extracted-text {
+            border-left: 4px solid #007bff;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .accuracy-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .accuracy-excellent {
+            color: #28a745;
+        }
+
+        .accuracy-good {
+            color: #ffc107;
+        }
+
+        .accuracy-poor {
+            color: #dc3545;
+        }
+
+        .image-display {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .image-display img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .method-info {
+            background: #e9ecef;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .method-info h3 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .info-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            color: #666;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border-left-color: #28a745;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left-color: #ffc107;
+        }
+
+        .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border-left-color: #dc3545;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-excellent {
+            background: linear-gradient(90deg, #28a745, #20c997);
+        }
+
+        .progress-good {
+            background: linear-gradient(90deg, #ffc107, #fd7e14);
+        }
+
+        .progress-poor {
+            background: linear-gradient(90deg, #dc3545, #c82333);
+        }
+
+        @media (max-width: 768px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .footer {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2rem 0;
+            margin-top: 3rem;
+            text-align: center;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+        <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-shield-alt"></i> CapCai
+            </a>
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/compare"><i class="fas fa-balance-scale"></i> Compare</a></li>
+                <li><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1>📤 Hasil Ekstraksi Watermark</h1>
+            <p>Watermark berhasil diekstrak menggunakan metode {{ result.method_name }}</p>
+        </div>
+
+        <!-- Success Alert -->
+        {% if result.success %}
+        <div class="alert alert-success">
+            <strong>✅ Berhasil!</strong> Watermark berhasil diekstrak dari gambar.
+        </div>
+        {% endif %}
+
+        <!-- Method Badge -->
+        <div class="result-section">
+            <div class="method-badge {{ 'histogram-badge' if result.method == 'histogram_shifting' else 'rdwt-badge' }}">
+                {{ result.method_name }}
+            </div>
+
+            <!-- Image Display -->
+            <div class="image-display">
+                <h3 style="margin-bottom: 1rem; color: #333;">Gambar Watermarked</h3>
+                <img src="{{ result.watermarked_image }}" alt="Watermarked Image">
+            </div>
+
+            <!-- Text Comparison -->
+            <div class="comparison-grid">
+                <div class="text-comparison">
+                    <h4 style="color: #28a745; margin-bottom: 1rem;">📝 Teks Asli</h4>
+                    <div class="text-box original-text">{{ result.original_text or 'Tidak tersedia' }}</div>
+                </div>
+                <div class="text-comparison">
+                    <h4 style="color: #007bff; margin-bottom: 1rem;">🔍 Teks Terekstrak</h4>
+                    <div class="text-box extracted-text">{{ result.extracted_text }}</div>
+                </div>
+            </div>
+
+            <!-- Extraction Statistics -->
+            <div class="stats-grid">
+                {% if result.extraction_accuracy is not none %}
+                <div class="stat-card">
+                    <div class="stat-value {{ 'accuracy-excellent' if result.extraction_accuracy >= 95 else ('accuracy-good' if result.extraction_accuracy >= 80 else 'accuracy-poor') }}">
+                        {{ result.extraction_accuracy }}%
+                    </div>
+                    <div class="stat-label">Akurasi Ekstraksi</div>
+                    <div class="accuracy-indicator">
+                        {% if result.extraction_accuracy >= 95 %}
+                            <span class="accuracy-excellent">🟢 Sempurna</span>
+                        {% elif result.extraction_accuracy >= 80 %}
+                            <span class="accuracy-good">🟡 Baik</span>
+                        {% else %}
+                            <span class="accuracy-poor">🔴 Buruk</span>
+                        {% endif %}
+                    </div>
+                    <!-- Progress Bar -->
+                    <div class="progress-bar">
+                        <div class="progress-fill {{ 'progress-excellent' if result.extraction_accuracy >= 95 else ('progress-good' if result.extraction_accuracy >= 80 else 'progress-poor') }}" 
+                             style="width: {{ result.extraction_accuracy }}%"></div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="stat-card">
+                    <div class="stat-value">{{ result.extracted_bits_count }}</div>
+                    <div class="stat-label">Bits Terekstrak</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-value">{{ result.expected_bits_count }}</div>
+                    <div class="stat-label">Bits Diharapkan</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-value">{{ result.extracted_text|length }}</div>
+                    <div class="stat-label">Karakter Terekstrak</div>
+                </div>
+            </div>
+
+            <!-- Accuracy Analysis -->
+            {% if result.extraction_accuracy is not none %}
+            <div style="margin: 2rem 0;">
+                {% if result.extraction_accuracy >= 95 %}
+                    <div class="alert alert-success">
+                        <strong>🎉 Ekstraksi Sempurna!</strong> Watermark berhasil diekstrak dengan akurasi sempurna. Metode {{ result.method_name }} bekerja dengan sangat baik pada gambar ini.
+                    </div>
+                {% elif result.extraction_accuracy >= 80 %}
+                    <div class="alert alert-warning">
+                        <strong>⚠️ Ekstraksi Baik</strong> Watermark berhasil diekstrak dengan akurasi yang baik. Mungkin ada sedikit noise atau degradasi pada gambar.
+                    </div>
+                {% else %}
+                    <div class="alert alert-danger">
+                        <strong>❌ Ekstraksi Buruk</strong> Watermark gagal diekstrak dengan baik. Gambar mungkin telah mengalami serangan atau corrupted.
+                    </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Method Information -->
+        {% if result.method_info %}
+        <div class="method-info">
+            <h3>🔧 Informasi Metode</h3>
+            <p style="margin-bottom: 1rem; color: #666;">{{ result.method_info.description }}</p>
+            
+            {% if result.method_info.parameters %}
+            <div class="info-grid">
+                {% for key, value in result.method_info.parameters.items() %}
+                <div class="info-item">
+                    <div class="info-label">{{ key.replace('_', ' ').title() }}</div>
+                    <div class="info-value">{{ value }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if result.method_info.analysis %}
+            <div style="margin-top: 1.5rem;">
+                <h4 style="color: #333; margin-bottom: 1rem;">📊 Analisis Tambahan</h4>
+                <div class="info-grid">
+                    {% for key, value in result.method_info.analysis.items() %}
+                    <div class="info-item">
+                        <div class="info-label">{{ key.replace('_', ' ').title() }}</div>
+                        <div class="info-value">{{ value }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="/extract/{{ result.method }}" class="btn btn-primary">
+                🔄 Ekstrak Lagi
+            </a>
+            <a href="/recover/{{ result.method }}" class="btn btn-success">
+                🔧 Recovery Gambar
+            </a>
+            <a href="/attack_test/{{ result.method }}" class="btn btn-info">
+                ⚔️ Test Serangan
+            </a>
+            <a href="/embed/{{ result.method }}" class="btn btn-secondary">
+                📥 Embed Baru
+            </a>
+            <a href="/" class="btn btn-secondary">
+                🏠 Kembali ke Home
+            </a>
+        </div>
+
+        <!-- Tips Section -->
+        <div class="result-section">
+            <h3 style="color: #333; margin-bottom: 1.5rem;">💡 Tips dan Saran</h3>
+            
+            {% if result.extraction_accuracy and result.extraction_accuracy < 80 %}
+            <div class="alert alert-warning">
+                <strong>Akurasi Rendah - Kemungkinan Penyebab:</strong>
+                <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                    <li>Gambar telah mengalami kompresi atau filtering</li>
+                    <li>File overhead data tidak sesuai dengan gambar</li>
+                    <li>Gambar telah mengalami serangan atau manipulasi</li>
+                    <li>Parameter ekstraksi tidak optimal</li>
+                </ul>
+            </div>
+            {% endif %}
+
+            <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; margin-top: 1rem;">
+                <h4 style="color: #333; margin-bottom: 1rem;">🔍 Langkah Selanjutnya:</h4>
+                <ul style="color: #666; line-height: 1.6; margin-left: 1.5rem;">
+                    {% if result.method == 'histogram_shifting' %}
+                    <li><strong>Recovery:</strong> Gunakan fitur recovery untuk mengembalikan gambar asli</li>
+                    <li><strong>Test Ketahanan:</strong> Uji ketahanan watermark terhadap berbagai serangan</li>
+                    <li><strong>Parameter Tuning:</strong> Coba sesuaikan parameter untuk hasil yang lebih baik</li>
+                    {% else %}
+                    <li><strong>Recovery:</strong> RDWT mendukung perfect recovery gambar asli</li>
+                    <li><strong>Robustness Test:</strong> RDWT memiliki ketahanan tinggi terhadap serangan</li>
+                    <li><strong>Analisis Mendalam:</strong> Periksa informasi analisis untuk optimasi lebih lanjut</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 Watermarking System. Dual-method watermarking dengan Histogram Shifting dan True RDWT.</p>
+    </footer>
+
+    <script>
+        // Auto-scroll to results on page load
+        window.addEventListener('load', function() {
+            const resultsSection = document.querySelector('.result-section');
+            if (resultsSection) {
+                resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+
+        // Copy text functionality
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('Teks berhasil disalin ke clipboard!');
+            }).catch(function(err) {
+                console.error('Error copying text: ', err);
+            });
+        }
+
+        // Add click event to text boxes for copying
+        document.querySelectorAll('.text-box').forEach(function(box) {
+            box.addEventListener('click', function() {
+                const text = this.textContent;
+                if (text && text !== 'Tidak tersedia') {
+                    copyToClipboard(text);
+                }
+            });
+            
+            // Add cursor pointer for clickable text boxes
+            if (box.textContent && box.textContent !== 'Tidak tersedia') {
+                box.style.cursor = 'pointer';
+                box.title = 'Klik untuk menyalin teks';
+            }
+        });
+
+        // Animate progress bars on load
+        window.addEventListener('load', function() {
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(function(bar) {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 500);
+            });
+        });
+
+        // Animate stat values on scroll
+        const observerOptions = {
+            threshold: 0.5,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const statValue = entry.target.querySelector('.stat-value');
+                    if (statValue && !statValue.classList.contains('animated')) {
+                        statValue.classList.add('animated');
+                        animateNumber(statValue);
+                    }
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.stat-card').forEach(card => {
+            observer.observe(card);
+        });
+
+        function animateNumber(element) {
+            const text = element.textContent;
+            const number = parseFloat(text);
+            if (!isNaN(number)) {
+                let current = 0;
+                const increment = number / 50;
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= number) {
+                        current = number;
+                        clearInterval(timer);
+                    }
+                    element.textContent = Math.round(current) + (text.includes('%') ? '%' : '');
+                }, 20);
+            }
+        }
+    </script>
+</body>
+</html>

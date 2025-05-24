@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embed Watermark - {{ method|title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .form-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-control.error {
+            border-color: #e74c3c;
+            background: #fdf2f2;
+        }
+
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-upload-label {
+            display: block;
+            padding: 2rem;
+            border: 2px dashed #667eea;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
+        }
+
+        .file-upload-label:hover {
+            border-color: #5a67d8;
+            background: linear-gradient(135deg, #f0f4ff, #e8ecff);
+        }
+
+        .file-upload-label.has-file {
+            border-color: #4ecdc4;
+            background: linear-gradient(135deg, #f0fffe, #e6fffe);
+        }
+
+        .file-upload-label.error {
+            border-color: #e74c3c;
+            background: linear-gradient(135deg, #fdf2f2, #fce4e4);
+        }
+
+        .file-upload-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            padding-left: 0.5rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .parameters-section {
+            background: linear-gradient(135deg, #f8f9ff, #f0f4ff);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .parameters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .range-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .range-input {
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+
+        .range-value {
+            background: #667eea;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            align-self: flex-start;
+        }
+
+        .capacity-info {
+            background: linear-gradient(135deg, #e8f5e8, #d4f4d4);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-left: 4px solid #4ecdc4;
+        }
+
+        .text-counter {
+            font-size: 0.9rem;
+            color: #666;
+            text-align: right;
+            margin-top: 0.5rem;
+        }
+
+        .method-info {
+            background: linear-gradient(135deg, #fff8e1, #fffbf0);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-left: 4px solid #ffa726;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e1e5e9;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4ecdc4, #44a08d);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Custom alert styles */
+        .custom-alert {
+            background: linear-gradient(135deg, #fdf2f2, #fce4e4);
+            border: 1px solid #e74c3c;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .custom-alert.show {
+            display: block;
+        }
+
+        .custom-alert.error {
+            background: linear-gradient(135deg, #fdf2f2, #fce4e4);
+            border-color: #e74c3c;
+            color: #c0392b;
+        }
+
+        .custom-alert.success {
+            background: linear-gradient(135deg, #e8f5e8, #d4f4d4);
+            border-color: #27ae60;
+            color: #1e8449;
+        }
+
+        .alert-icon {
+            font-size: 1.2rem;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 2rem 1rem;
+            }
+            
+            .parameters-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <i class="fas fa-shield-alt"></i> CapCai
+            </a>
+            <ul class="nav-links">
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/compare"><i class="fas fa-balance-scale"></i> Compare</a></li>
+                <li><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="hero">
+            <h1>🔒 Embed Watermark</h1>
+            <p>Metode: <strong>
+                {% if method == 'histogram_shifting' %}
+                    Histogram Shifting
+                {% else %}
+                    True RDWT (Redundant DWT)
+                {% endif %}
+            </strong></p>
+        </div>
+
+        <!-- Method Info -->
+        <div class="method-info">
+            <h3>ℹ️ Informasi Metode</h3>
+            {% if method == 'histogram_shifting' %}
+                <p><strong>Histogram Shifting</strong> adalah metode watermarking tradisional yang menggunakan modifikasi histogram gambar. Metode ini cepat dan menghasilkan kualitas visual yang baik, namun kurang tahan terhadap serangan.</p>
+                <ul style="margin-top: 1rem; padding-left: 2rem;">
+                    <li>✅ Proses cepat dan sederhana</li>
+                    <li>✅ Kualitas visual tinggi (PSNR bagus)</li>
+                    <li>⚠️ Kurang tahan serangan</li>
+                    <li>⚠️ Kapasitas terbatas</li>
+                </ul>
+            {% else %}
+                <p><strong>True RDWT</strong> adalah metode watermarking advanced menggunakan Stationary Wavelet Transform. Metode ini sangat tahan terhadap serangan dan menggunakan parameter otomatis.</p>
+                <ul style="margin-top: 1rem; padding-left: 2rem;">
+                    <li>✅ Sangat tahan serangan</li>
+                    <li>✅ Parameter otomatis</li>
+                    <li>✅ Kapasitas besar</li>
+                    <li>✅ Mendukung recovery</li>
+                </ul>
+            {% endif %}
+        </div>
+
+        <!-- Custom Alert for Validation Errors -->
+        <div id="customAlert" class="custom-alert error">
+            <span class="alert-icon">⚠️</span>
+            <span id="alertMessage"></span>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'error' if category == 'error' else 'info' }} show">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Embedding Form -->
+        <form method="POST" enctype="multipart/form-data" id="embedForm" class="form-container">
+            <!-- Image Upload -->
+            <div class="form-group">
+                <label for="image">📷 Pilih Gambar Host</label>
+                <div class="file-upload">
+                    <input type="file" id="image" name="image" accept="image/*" required>
+                    <label for="image" class="file-upload-label" id="imageLabel">
+                        <div class="file-upload-icon">📁</div>
+                        <div>Klik untuk memilih gambar</div>
+                        <small>Format: PNG, JPG, JPEG, BMP, TIFF (Max: 16MB)</small>
+                    </label>
+                </div>
+                <div class="error-message" id="imageError">
+                    📷 Silakan pilih gambar terlebih dahulu!
+                </div>
+                <div class="capacity-info" id="capacityInfo" style="display: none;">
+                    <strong>📊 Kapasitas Gambar:</strong>
+                    <div id="capacityDetails"></div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="capacityProgress" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Watermark Text -->
+            <div class="form-group">
+                <label for="watermark_text">✍️ Teks Watermark</label>
+                <textarea 
+                    id="watermark_text" 
+                    name="watermark_text" 
+                    class="form-control" 
+                    rows="4" 
+                    placeholder="Masukkan teks yang ingin disembunyikan dalam gambar..."
+                    required
+                    {% if method == 'histogram_shifting' %}maxlength="100"{% else %}maxlength="500"{% endif %}
+                ></textarea>
+                <div class="error-message" id="textError">
+                    ✍️ Silakan masukkan teks watermark!
+                </div>
+                <div class="text-counter">
+                    <span id="charCount">0</span> / 
+                    <span id="maxChars">{% if method == 'histogram_shifting' %}100{% else %}500{% endif %}</span> karakter
+                </div>
+            </div>
+
+            <!-- Parameters Section (Only for Histogram Shifting) -->
+            {% if method == 'histogram_shifting' %}
+            <div class="parameters-section">
+                <h3>⚙️ Parameter Embedding</h3>
+                <div class="parameters-grid">
+                    <div class="range-group">
+                        <label for="block_size">Block Size</label>
+                        <input type="range" id="block_size" name="block_size" min="16" max="128" value="64" step="16" class="range-input">
+                        <div class="range-value" id="blockSizeValue">64</div>
+                        <small>Ukuran blok untuk embedding (16-128)</small>
+                    </div>
+                    
+                    <div class="range-group">
+                        <label for="strength">Strength</label>
+                        <input type="range" id="strength" name="strength" min="1" max="10" value="3" step="1" class="range-input">
+                        <div class="range-value" id="strengthValue">3</div>
+                        <small>Kekuatan embedding (1-10)</small>
+                    </div>
+                    
+                    <div class="range-group">
+                        <label for="redundancy">Redundancy</label>
+                        <input type="range" id="redundancy" name="redundancy" min="1" max="5" value="3" step="1" class="range-input">
+                        <div class="range-value" id="redundancyValue">3</div>
+                        <small>Tingkat redundansi (1-5)</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Submit Button -->
+            <div style="text-align: center; margin-top: 2rem;">
+                <button type="submit" class="btn btn-primary" style="padding: 1rem 3rem; font-size: 1.1rem;">
+                    🔐 Embed Watermark
+                </button>
+            </div>
+        </form>
+
+        <!-- Navigation -->
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">🏠 Kembali ke Home</a>
+            <a href="{{ url_for('extract_watermark_method', method=method) }}" class="btn btn-info">🔍 Extract Watermark</a>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading" id="loading">
+        <div style="text-align: center;">
+            <div class="spinner"></div>
+            <p style="color: white; margin-top: 1rem;">Sedang memproses...</p>
+        </div>
+    </div>
+
+    <script>
+    // Wait for DOM to be fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // Character counter
+        const textArea = document.getElementById('watermark_text');
+        const charCount = document.getElementById('charCount');
+        const maxCharsElement = document.getElementById('maxChars');
+
+        if (textArea && charCount && maxCharsElement) {
+            const maxChars = parseInt(maxCharsElement.textContent || maxCharsElement.value || '1000');
+
+            textArea.addEventListener('input', function() {
+                const count = this.value.length;
+                charCount.textContent = count;
+                
+                // Remove error styling when user starts typing
+                if (count > 0) {
+                    clearFieldError('watermark_text');
+                }
+                
+                // Color coding
+                if (count > maxChars * 0.8) {
+                    charCount.style.color = '#e74c3c';
+                } else if (count > maxChars * 0.6) {
+                    charCount.style.color = '#f39c12';
+                } else {
+                    charCount.style.color = '#27ae60';
+                }
+                
+                // Update capacity progress
+                updateCapacityProgress();
+            });
+        }
+
+        // File upload handling
+        const fileInput = document.getElementById('image');
+        const fileLabel = document.getElementById('imageLabel');
+        const capacityInfo = document.getElementById('capacityInfo');
+
+        if (fileInput && fileLabel) {
+            fileInput.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const fileName = this.files[0].name;
+                    fileLabel.classList.add('has-file');
+                    fileLabel.classList.remove('error');
+                    fileLabel.innerHTML = `
+                        <div class="file-upload-icon">✅</div>
+                        <div>File terpilih: ${fileName}</div>
+                        <small>Klik untuk mengganti gambar</small>
+                    `;
+
+                    // Clear error styling
+                    clearFieldError('image');
+
+                    // Create image to get dimensions for capacity calculation
+                    const img = new Image();
+                    img.onload = function() {
+                        calculateCapacity(this.width, this.height);
+                    };
+                    img.onerror = function() {
+                        console.error('Failed to load image for capacity calculation');
+                    };
+                    img.src = URL.createObjectURL(fileInput.files[0]);
+                }
+            });
+        }
+
+        // Error handling functions
+        function showFieldError(fieldId, message) {
+            const field = document.getElementById(fieldId);
+            const errorElement = document.getElementById(fieldId + 'Error');
+            
+            if (field) {
+                if (field.type === 'file') {
+                    const label = document.getElementById(fieldId + 'Label');
+                    if (label) {
+                        label.classList.add('error');
+                    }
+                } else {
+                    field.classList.add('error');
+                }
+            }
+            
+            if (errorElement) {
+                if (message) {
+                    errorElement.textContent = message;
+                }
+                errorElement.classList.add('show');
+            }
+        }
+
+        function clearFieldError(fieldId) {
+            const field = document.getElementById(fieldId);
+            const errorElement = document.getElementById(fieldId + 'Error');
+            
+            if (field) {
+                if (field.type === 'file') {
+                    const label = document.getElementById(fieldId + 'Label');
+                    if (label) {
+                        label.classList.remove('error');
+                    }
+                } else {
+                    field.classList.remove('error');
+                }
+            }
+            
+            if (errorElement) {
+                errorElement.classList.remove('show');
+            }
+        }
+
+        function showCustomAlert(message, type = 'error') {
+            const alertElement = document.getElementById('customAlert');
+            const messageElement = document.getElementById('alertMessage');
+            
+            if (alertElement && messageElement) {
+                messageElement.textContent = message;
+                alertElement.className = `custom-alert ${type} show`;
+                
+                // Auto hide after 5 seconds
+                setTimeout(() => {
+                    alertElement.classList.remove('show');
+                }, 5000);
+                
+                // Scroll to alert
+                alertElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Function to get method
+        function getMethod() {
+            // Option 1: Get from a hidden input or select element
+            const methodElement = document.getElementById('method');
+            if (methodElement) {
+                return methodElement.value || methodElement.textContent;
+            }
+            
+            // Option 2: Get from a data attribute on body or form
+            const bodyMethod = document.body.dataset.method;
+            if (bodyMethod) {
+                return bodyMethod;
+            }
+            
+            // Option 3: Check for radio buttons or other form inputs
+            const methodRadio = document.querySelector('input[name="method"]:checked');
+            if (methodRadio) {
+                return methodRadio.value;
+            }
+            
+            // Option 4: Default fallback
+            return 'rdwt';
+        }
+
+        function calculateCapacity(width, height) {
+            const method = getMethod();
+            let capacityBits, capacityChars;
+
+            if (method === 'histogram_shifting') {
+                const blockSizeElement = document.getElementById('block_size');
+                const redundancyElement = document.getElementById('redundancy');
+                
+                const blockSize = parseInt(blockSizeElement ? blockSizeElement.value : '64');
+                const redundancy = parseInt(redundancyElement ? redundancyElement.value : '3');
+                
+                const blocksX = Math.floor(width / blockSize);
+                const blocksY = Math.floor(height / blockSize);
+                const totalBlocks = blocksX * blocksY;
+                capacityBits = Math.floor(totalBlocks / redundancy);
+                capacityChars = Math.floor(capacityBits / 20); // Conservative estimate
+            } else {
+                // RDWT capacity estimation
+                capacityBits = Math.floor((width * height) / 64);
+                capacityChars = Math.floor(capacityBits / 16);
+            }
+
+            // Update capacity details
+            const capacityDetailsElement = document.getElementById('capacityDetails');
+            if (capacityDetailsElement) {
+                capacityDetailsElement.innerHTML = `
+                    <div>📊 Dimensi: ${width} x ${height} pixels</div>
+                    <div>💾 Kapasitas: ~${capacityChars} karakter (${capacityBits} bits)</div>
+                `;
+            }
+            
+            // Update max chars for character counter
+            if (maxCharsElement) {
+                maxCharsElement.textContent = capacityChars;
+            }
+            
+            if (capacityInfo) {
+                capacityInfo.style.display = 'block';
+            }
+            
+            updateCapacityProgress();
+        }
+
+        function updateCapacityProgress() {
+            // Use the same textArea element defined at the top
+            const currentTextArea = textArea || document.getElementById('textArea');
+            const currentMaxCharsElement = maxCharsElement || document.getElementById('maxChars');
+            
+            if (!currentTextArea || !currentMaxCharsElement) return;
+            
+            const textLength = currentTextArea.value ? currentTextArea.value.length : 0;
+            const maxCharsNum = parseInt(currentMaxCharsElement.textContent || currentMaxCharsElement.value || '1000');
+            const progress = maxCharsNum > 0 ? (textLength / maxCharsNum) * 100 : 0;
+            
+            const progressBar = document.getElementById('capacityProgress');
+            if (progressBar) {
+                progressBar.style.width = `${Math.min(progress, 100)}%`;
+                
+                // Add color coding for progress bar
+                if (progress > 90) {
+                    progressBar.style.backgroundColor = '#e74c3c';
+                } else if (progress > 70) {
+                    progressBar.style.backgroundColor = '#f39c12';
+                } else {
+                    progressBar.style.backgroundColor = '#27ae60';
+                }
+            }
+        }
+
+        // Conditional code for histogram shifting method
+        function initializeHistogramShifting() {
+            // Range sliders for Histogram Shifting
+            function updateRangeValue(sliderId, valueId) {
+                const slider = document.getElementById(sliderId);
+                const valueDisplay = document.getElementById(valueId);
+                
+                if (!slider || !valueDisplay) return;
+                
+                // Set initial value
+                valueDisplay.textContent = slider.value;
+                
+                slider.addEventListener('input', function() {
+                    valueDisplay.textContent = this.value;
+                    
+                    // Recalculate capacity if image is loaded
+                    if (fileInput && fileInput.files && fileInput.files[0]) {
+                        const img = new Image();
+                        img.onload = function() {
+                            calculateCapacity(this.width, this.height);
+                        };
+                        img.onerror = function() {
+                            console.error('Failed to reload image for capacity recalculation');
+                        };
+                        img.src = URL.createObjectURL(fileInput.files[0]);
+                    }
+                });
+            }
+
+            updateRangeValue('block_size', 'blockSizeValue');
+            updateRangeValue('strength', 'strengthValue');
+            updateRangeValue('redundancy', 'redundancyValue');
+        }
+
+        // Initialize histogram shifting if method is histogram_shifting
+        if (getMethod() === 'histogram_shifting') {
+            initializeHistogramShifting();
+        }
+
+        // Method change handler (if method can be changed dynamically)
+        const methodElements = document.querySelectorAll('input[name="method"], select[name="method"], #method');
+        methodElements.forEach(element => {
+            element.addEventListener('change', function() {
+                const newMethod = getMethod();
+                if (newMethod === 'histogram_shifting') {
+                    initializeHistogramShifting();
+                }
+                
+                // Recalculate capacity if image is loaded
+                if (fileInput && fileInput.files && fileInput.files[0]) {
+                    const img = new Image();
+                    img.onload = function() {
+                        calculateCapacity(this.width, this.height);
+                    };
+                    img.src = URL.createObjectURL(fileInput.files[0]);
+                }
+            });
+        });
+
+        // Form submission with enhanced validation
+        const embedForm = document.getElementById('embedForm');
+        if (embedForm) {
+            embedForm.addEventListener('submit', function(e) {
+                e.preventDefault(); // Always prevent default first
+                
+                let isValid = true;
+                let errorMessages = [];
+                
+                // Clear previous errors
+                clearFieldError('image');
+                clearFieldError('watermark_text');
+                
+                // Validate image upload
+                const imageField = document.getElementById('image');
+                if (!imageField || !imageField.files || imageField.files.length === 0) {
+                    showFieldError('image', '📷 Silakan pilih gambar terlebih dahulu!');
+                    errorMessages.push('Gambar belum dipilih');
+                    isValid = false;
+                }
+                
+                // Validate watermark text
+                const textField = document.getElementById('watermark_text');
+                if (!textField || !textField.value.trim()) {
+                    showFieldError('watermark_text', '✍️ Silakan masukkan teks watermark!');
+                    errorMessages.push('Teks watermark belum diisi');
+                    isValid = false;
+                }
+                
+                // If validation fails, show error and stop
+                if (!isValid) {
+                    const mainError = errorMessages.length > 1 
+                        ? `Mohon lengkapi: ${errorMessages.join(', ')}`
+                        : errorMessages[0] || 'Mohon lengkapi semua field yang diperlukan';
+                        
+                    showCustomAlert(mainError, 'error');
+                    
+                    // Scroll to first error field
+                    const firstErrorField = document.querySelector('.form-control.error, .file-upload-label.error');
+                    if (firstErrorField) {
+                        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                    return false;
+                }
+                
+                // If validation passes, show loading and submit
+                const loading = document.getElementById('loading');
+                if (loading) {
+                    loading.classList.add('show');
+                }
+                
+                // Submit the form
+                this.submit();
+            });
+        }
+
+        // Initialize capacity progress on page load
+        updateCapacityProgress();
+    });
+</script>
+</body>
+</html>
