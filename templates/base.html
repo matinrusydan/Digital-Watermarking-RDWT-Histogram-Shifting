@@ -15,7 +15,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #ffffff;
             min-height: 100vh;
             color: #333;
         }
@@ -137,32 +137,32 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: #ffffff;
             color: white;
         }
 
         .btn-secondary {
-            background: linear-gradient(135deg, #f093fb, #f5576c);
+            background: #ffffff;
             color: white;
         }
 
         .btn-success {
-            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            background: #ffffff;
             color: white;
         }
 
         .btn-danger {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            background: #ffffff;
             color: white;
         }
 
         .btn-warning {
-            background: linear-gradient(135deg, #feca57, #ff9ff3);
+            background: #ffffff;
             color: white;
         }
 
         .btn-info {
-            background: linear-gradient(135deg, #48cae4, #0077b6);
+            background: #ffffff;
             color: white;
         }
 
@@ -241,11 +241,11 @@
         }
 
         .histogram-icon {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: #ffffff;
         }
 
         .rdwt-icon {
-            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            background: #ffffff;
         }
 
         .method-info h3 {
@@ -352,7 +352,7 @@
 
         .progress-bar {
             height: 100%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: #ffffff;
             border-radius: 10px;
             transition: width 0.5s ease;
         }
@@ -457,7 +457,7 @@
         }
 
         .comparison-table th {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: #ffffff;
             color: white;
             font-weight: 600;
         }
@@ -632,13 +632,13 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="{{ url_for('index') }}" class="logo">
-                <i class="fas fa-shield-alt"></i> Dual Watermarking
+            <a href="/" class="logo">
+                <i class="fas fa-shield-alt"></i> CapCai
             </a>
             <ul class="nav-links">
-                <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Home</a></li>
-                <li><a href="{{ url_for('compare_methods') }}"><i class="fas fa-balance-scale"></i> Compare</a></li>
-                <li><a href="{{ url_for('help_page') }}"><i class="fas fa-question-circle"></i> Help</a></li>
+                <li><a href="/"><i class="fas fa-home"></i> Home</a></li>
+                <li><a href="/compare"><i class="fas fa-balance-scale"></i> Compare</a></li>
+                <li><a href="/help"><i class="fas fa-question-circle"></i> Help</a></li>
             </ul>
         </div>
     </nav>
