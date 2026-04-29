@@ -114,16 +114,23 @@ def embed_watermark_method(method):
             flash('Tidak dapat membaca file gambar')
             return redirect(request.url)
         
-        # Convert ke grayscale untuk watermarking
-        gray_img = rgb_to_grayscale(img)
+        # Prepare image for watermarking (Blue Channel preservation for perfect lossless)
+        if len(img.shape) == 3 and not (np.array_equal(img[:,:,0], img[:,:,1]) and np.array_equal(img[:,:,1], img[:,:,2])):
+            process_img = img[:, :, 0].copy() # Extract Blue channel
+            is_color = True
+            ycc_img = img # Pass original img to replace channel later
+        else:
+            process_img = rgb_to_grayscale(img)
+            ycc_img = None
+            is_color = False
         
         # Convert teks ke bits
         watermark_bits = text_to_bits(watermark_text)
         
         if method == 'histogram_shifting':
-            return embed_histogram_shifting(img, gray_img, watermark_text, watermark_bits)
+            return embed_histogram_shifting(img, process_img, is_color, ycc_img, watermark_text, watermark_bits)
         else:  # rdwt
-            return embed_rdwt_method(img, gray_img, watermark_text, watermark_bits)
+            return embed_rdwt_method(img, process_img, is_color, ycc_img, watermark_text, watermark_bits)
             
     except Exception as e:
         error_msg = str(e)
@@ -131,7 +138,7 @@ def embed_watermark_method(method):
         flash(f'Error saat embedding: {error_msg}')
         return redirect(url_for('embed_watermark_method', method=method))
 
-def embed_histogram_shifting(img, gray_img, watermark_text, watermark_bits):
+def embed_histogram_shifting(img, process_img, is_color, ycc_img, watermark_text, watermark_bits):
     """Embed menggunakan Histogram Shifting method."""
     try:
         # Ambil parameter dari form
@@ -153,7 +160,7 @@ def embed_histogram_shifting(img, gray_img, watermark_text, watermark_bits):
             return redirect(request.url)
         
         # Cek kapasitas
-        rows, cols = gray_img.shape
+        rows, cols = process_img.shape
         blocks_x = cols // block_size
         blocks_y = rows // block_size
         total_blocks = blocks_x * blocks_y
@@ -168,12 +175,18 @@ def embed_histogram_shifting(img, gray_img, watermark_text, watermark_bits):
             return redirect(request.url)
         
         # Embed watermark
-        watermarked_gray, overhead_data = embed_watermark(
-            gray_img, watermark_bits, strength, block_size, redundancy
+        watermarked_process, overhead_data = embed_watermark(
+            process_img, watermark_bits, strength, block_size, redundancy
         )
         
         # Convert kembali ke RGB
-        watermarked_img = grayscale_to_rgb(watermarked_gray)
+        if is_color:
+            watermarked_img = ycc_img.copy()
+            watermarked_img[:, :, 0] = watermarked_process
+        else:
+            watermarked_img = grayscale_to_rgb(watermarked_process)
+            
+        overhead_data['is_color'] = is_color
         
         # Hitung PSNR
         psnr = calculate_psnr(img, watermarked_img)
@@ -232,12 +245,12 @@ def embed_histogram_shifting(img, gray_img, watermark_text, watermark_bits):
         return redirect(request.url)
 
 
-def embed_rdwt_method(img, gray_img, watermark_text, watermark_bits):
+def embed_rdwt_method(img, process_img, is_color, ycc_img, watermark_text, watermark_bits):
     """Embed menggunakan True RDWT method."""
     try:
         # Validasi input - gunakan fungsi lokal jika tidak ada di rdwt_watermarking
         try:
-            errors, warnings = validate_inputs(gray_img, watermark_text)
+            errors, warnings = validate_inputs(process_img, watermark_text)
         except (NameError, ImportError):
             # Fallback validation jika fungsi tidak tersedia
             errors = []
@@ -247,7 +260,7 @@ def embed_rdwt_method(img, gray_img, watermark_text, watermark_bits):
                 errors.append("Teks watermark tidak boleh kosong")
             if len(watermark_text) > 500:
                 warnings.append("Teks watermark sangat panjang, mungkin tidak optimal")
-            if gray_img.shape[0] < 128 or gray_img.shape[1] < 128:
+            if process_img.shape[0] < 128 or process_img.shape[1] < 128:
                 warnings.append("Ukuran gambar kecil, kapasitas terbatas")
         
         if errors:
@@ -260,12 +273,12 @@ def embed_rdwt_method(img, gray_img, watermark_text, watermark_bits):
             flash(warning, 'warning')
         
         # Cek kapasitas
-        capacity = calculate_capacity(gray_img.shape)
+        capacity = calculate_capacity(process_img.shape)
         required_bits = len(watermark_bits)
         
         if required_bits > capacity:
             try:
-                text_limits = get_text_limits(gray_img.shape)
+                text_limits = get_text_limits(process_img.shape)
                 max_chars = text_limits["recommended_max"]
             except (NameError, ImportError):
                 max_chars = capacity // 16  # Fallback estimation
@@ -278,22 +291,19 @@ def embed_rdwt_method(img, gray_img, watermark_text, watermark_bits):
         # Embed watermark dengan parameter otomatis - FIXED SECTION
         try:
             # Coba panggil embed function dan handle different return formats
-            result = embed_watermark_rdwt(gray_img, watermark_bits)
+            result = embed_watermark_rdwt(process_img, watermark_bits)
             
             # Debug print to see what we get
             print(f"embed_watermark_rdwt returned: {type(result)}")
             
             # Handle different return formats
             if isinstance(result, tuple) and len(result) == 2:
-                # Expected format: (watermarked_image, metadata)
-                watermarked_gray, overhead_data = result
+                watermarked_process, overhead_data = result
             elif isinstance(result, tuple) and len(result) == 1:
-                # Single tuple element
-                watermarked_gray = result[0]
+                watermarked_process = result[0]
                 overhead_data = create_default_overhead_data()
             else:
-                # Single return value (just the image)
-                watermarked_gray = result
+                watermarked_process = result
                 overhead_data = create_default_overhead_data()
                 
         except Exception as embed_error:
@@ -302,7 +312,13 @@ def embed_rdwt_method(img, gray_img, watermark_text, watermark_bits):
             return redirect(request.url)
         
         # Convert kembali ke RGB
-        watermarked_img = grayscale_to_rgb(watermarked_gray)
+        if is_color:
+            watermarked_img = ycc_img.copy()
+            watermarked_img[:, :, 0] = watermarked_process
+        else:
+            watermarked_img = grayscale_to_rgb(watermarked_process)
+            
+        overhead_data['is_color'] = is_color
         
         # Hitung PSNR
         psnr = calculate_psnr(img, watermarked_img)
@@ -415,10 +431,16 @@ def extract_watermark_method(method):
             method = stored_method
             flash(f'Metode otomatis disesuaikan ke {method.replace("_", " ").title()} berdasarkan file overhead', 'info')
         
+        # Calculate watermarked_process correctly
+        if overhead_data.get('is_color', False) and len(watermarked_img.shape) == 3:
+            watermarked_process = watermarked_img[:, :, 0]
+        else:
+            watermarked_process = rgb_to_grayscale(watermarked_img)
+            
         if method == 'histogram_shifting':
-            return extract_histogram_shifting(watermarked_img, watermarked_gray, overhead_data)
+            return extract_histogram_shifting(watermarked_img, watermarked_process, overhead_data)
         else:  # rdwt
-            return extract_rdwt_method(watermarked_img, watermarked_gray, overhead_data)
+            return extract_rdwt_method(watermarked_img, watermarked_process, overhead_data)
             
     except json.JSONDecodeError:
         flash('Format file overhead data tidak valid')
@@ -429,7 +451,7 @@ def extract_watermark_method(method):
         flash(f'Error saat ekstraksi: {error_msg}')
         return redirect(request.url)
 
-def extract_histogram_shifting(watermarked_img, watermarked_gray, overhead_data):
+def extract_histogram_shifting(watermarked_img, watermarked_process, overhead_data):
     """Extract menggunakan Histogram Shifting method."""
     try:
         # Validasi format overhead data
@@ -441,7 +463,7 @@ def extract_histogram_shifting(watermarked_img, watermarked_gray, overhead_data)
             return redirect(request.url)
         
         # Extract watermark
-        extracted_bits = extract_watermark(watermarked_gray, overhead_data)
+        extracted_bits = extract_watermark(watermarked_process, overhead_data)
         
         # Convert bits ke teks
         extracted_text = bits_to_text(extracted_bits)
@@ -479,7 +501,7 @@ def extract_histogram_shifting(watermarked_img, watermarked_gray, overhead_data)
         flash(f'Error Histogram Shifting extraction: {error_msg}')
         return redirect(request.url)
 
-def extract_rdwt_method(watermarked_img, watermarked_gray, overhead_data):
+def extract_rdwt_method(watermarked_img, watermarked_process, overhead_data):
     """Extract menggunakan True RDWT method."""
     try:
         # Validasi format overhead data
@@ -491,7 +513,7 @@ def extract_rdwt_method(watermarked_img, watermarked_gray, overhead_data):
             return redirect(request.url)
         
         # Extract watermark
-        extracted_bits = extract_watermark_rdwt(watermarked_gray, overhead_data)
+        extracted_bits = extract_watermark_rdwt(watermarked_process, overhead_data)
         
         # Convert bits ke teks
         extracted_text = bits_to_text(extracted_bits)
@@ -682,12 +704,12 @@ def attack_test_method(method):
         img_data = img_file.read()
         img_array = np.frombuffer(img_data, np.uint8)
         watermarked_img = cv2.imdecode(img_array, cv2.IMREAD_COLOR)
-        watermarked_gray = rgb_to_grayscale(watermarked_img)
         
         # Baca overhead data
         overhead_file.seek(0)
         overhead_json = overhead_file.read().decode('utf-8')
         overhead_data = json.loads(overhead_json)
+        is_color = overhead_data.get('is_color', False)
         
         # Ambil parameter serangan dari form
         attack_types = request.form.getlist('attack_types')
@@ -706,29 +728,35 @@ def attack_test_method(method):
                 
                 # Apply serangan
                 if attack_type == 'gaussian_noise':
-                    attacked_img = attack.gaussian_noise(watermarked_gray, std=10)
+                    attacked_img_color = attack.gaussian_noise(watermarked_img, std=10)
                 elif attack_type == 'salt_pepper':
-                    attacked_img = attack.salt_pepper_noise(watermarked_gray, prob=0.01)
+                    attacked_img_color = attack.salt_pepper_noise(watermarked_img, prob=0.01)
                 elif attack_type == 'median_filter':
-                    attacked_img = attack.median_filter(watermarked_gray, kernel_size=3)
+                    attacked_img_color = attack.median_filter(watermarked_img, kernel_size=3)
                 elif attack_type == 'gaussian_blur':
-                    attacked_img = attack.gaussian_blur(watermarked_gray, kernel_size=5, sigma=1.0)
+                    attacked_img_color = attack.gaussian_blur(watermarked_img, kernel_size=5, sigma=1.0)
                 elif attack_type == 'compression':
-                    attacked_img = attack.jpeg_compression(watermarked_gray, quality=70)
+                    attacked_img_color = attack.jpeg_compression(watermarked_img, quality=70)
                 elif attack_type == 'rotation':
-                    attacked_img = attack.rotation(watermarked_gray, angle=5)
+                    attacked_img_color = attack.rotation(watermarked_img, angle=5)
                 elif attack_type == 'scaling':
-                    attacked_img = attack.scaling(watermarked_gray, scale_factor=0.8)
+                    attacked_img_color = attack.scaling(watermarked_img, scale_factor=0.8)
                 elif attack_type == 'cropping':
-                    attacked_img = attack.cropping(watermarked_gray, crop_ratio=0.1)
+                    attacked_img_color = attack.cropping(watermarked_img, crop_ratio=0.1)
                 else:
                     continue
                 
+                # Extract channel for processing
+                if is_color and len(attacked_img_color.shape) == 3:
+                    attacked_img_process = attacked_img_color[:, :, 0]
+                else:
+                    attacked_img_process = rgb_to_grayscale(attacked_img_color)
+                
                 # Extract watermark dari gambar yang diserang
                 if method == 'histogram_shifting':
-                    extracted_bits = extract_watermark(attacked_img, overhead_data)
+                    extracted_bits = extract_watermark(attacked_img_process, overhead_data)
                 else:  # rdwt
-                    extracted_bits = extract_watermark_rdwt(attacked_img, overhead_data)
+                    extracted_bits = extract_watermark_rdwt(attacked_img_process, overhead_data)
                 
                 # Convert ke teks
                 extracted_text = bits_to_text(extracted_bits)
@@ -738,12 +766,12 @@ def attack_test_method(method):
                 accuracy = calculate_text_accuracy(original_text, extracted_text)
                 
                 # Hitung PSNR
-                psnr = calculate_psnr(watermarked_gray, attacked_img)
+                psnr = calculate_psnr(watermarked_img, attacked_img_color)
                 
                 results.append({
                     'attack_type': attack_type,
                     'attack_name': attack_type.replace('_', ' ').title(),
-                    'attacked_image': image_to_base64(grayscale_to_rgb(attacked_img)),
+                    'attacked_image': image_to_base64(attacked_img_color),
                     'extracted_text': extracted_text,
                     'accuracy': round(accuracy, 2) if accuracy is not None else 0,
                     'psnr': round(psnr, 2),
@@ -823,7 +851,7 @@ def api_embed():
                 redundancy=params.get('redundancy', 3)
             )
         else:  # rdwt
-            watermarked_gray, overhead_data = embed_watermark_rdwt(gray_img, watermark_bits)
+            watermarked_gray, overhead_data = embed_watermark_rdwt(process_img, watermark_bits)
         
         watermarked_img = grayscale_to_rgb(watermarked_gray)
         psnr = calculate_psnr(img, watermarked_img)
@@ -859,9 +887,9 @@ def api_extract():
         
         # Extract berdasarkan metode
         if method == 'histogram_shifting':
-            extracted_bits = extract_watermark(watermarked_gray, overhead_data)
+            extracted_bits = extract_watermark(watermarked_process, overhead_data)
         else:  # rdwt
-            extracted_bits = extract_watermark_rdwt(watermarked_gray, overhead_data)
+            extracted_bits = extract_watermark_rdwt(watermarked_process, overhead_data)
         
         extracted_text = bits_to_text(extracted_bits)
         
@@ -901,14 +929,14 @@ def api_calculate_capacity():
         method = data.get('method', 'histogram_shifting')
         
         if method == 'histogram_shifting':
-            block_size = data.get('block_size', 64)
-            redundancy = data.get('redundancy', 3)
+            block_size = data.get('block_size', 16)
+            redundancy = data.get('redundancy', 1)
             
             blocks_x = width // block_size
             blocks_y = height // block_size
             total_blocks = blocks_x * blocks_y
             capacity_bits = total_blocks // redundancy
-            capacity_chars = capacity_bits // 20  # Estimasi konservatif
+            capacity_chars = capacity_bits // 16  # Estimasi konservatif
             
         else:  # rdwt
             capacity_bits = calculate_capacity((height, width))

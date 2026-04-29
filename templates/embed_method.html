@@ -328,7 +328,6 @@
                     rows="4" 
                     placeholder="Masukkan teks yang ingin disembunyikan dalam gambar..."
                     required
-                    {% if method == 'histogram_shifting' %}maxlength="100"{% else %}maxlength="500"{% endif %}
                 ></textarea>
                 <div class="error-message" id="textError">
                     ✍️ Silakan masukkan teks watermark!
@@ -346,9 +345,9 @@
                 <div class="parameters-grid">
                     <div class="range-group">
                         <label for="block_size">Block Size</label>
-                        <input type="range" id="block_size" name="block_size" min="16" max="128" value="64" step="16" class="range-input">
-                        <div class="range-value" id="blockSizeValue">64</div>
-                        <small>Ukuran blok untuk embedding (16-128)</small>
+                        <input type="range" id="block_size" name="block_size" min="8" max="128" value="16" step="8" class="range-input">
+                        <div class="range-value" id="blockSizeValue">16</div>
+                        <small>Ukuran blok untuk embedding (8-128)</small>
                     </div>
                     
                     <div class="range-group">
@@ -360,8 +359,8 @@
                     
                     <div class="range-group">
                         <label for="redundancy">Redundancy</label>
-                        <input type="range" id="redundancy" name="redundancy" min="1" max="5" value="3" step="1" class="range-input">
-                        <div class="range-value" id="redundancyValue">3</div>
+                        <input type="range" id="redundancy" name="redundancy" min="1" max="5" value="1" step="1" class="range-input">
+                        <div class="range-value" id="redundancyValue">1</div>
                         <small>Tingkat redundansi (1-5)</small>
                     </div>
                 </div>
@@ -553,14 +552,15 @@
                 const blockSizeElement = document.getElementById('block_size');
                 const redundancyElement = document.getElementById('redundancy');
                 
-                const blockSize = parseInt(blockSizeElement ? blockSizeElement.value : '64');
-                const redundancy = parseInt(redundancyElement ? redundancyElement.value : '3');
+                const blockSize = parseInt(blockSizeElement ? blockSizeElement.value : '16');
+                const redundancy = parseInt(redundancyElement ? redundancyElement.value : '1');
                 
                 const blocksX = Math.floor(width / blockSize);
                 const blocksY = Math.floor(height / blockSize);
                 const totalBlocks = blocksX * blocksY;
                 capacityBits = Math.floor(totalBlocks / redundancy);
-                capacityChars = Math.floor(capacityBits / 20); // Conservative estimate
+                capacityChars = Math.floor(capacityBits / 16); // 16 bits per char (including overhead)
+
             } else {
                 // RDWT capacity estimation
                 capacityBits = Math.floor((width * height) / 64);
@@ -589,8 +589,7 @@
         }
 
         function updateCapacityProgress() {
-            // Use the same textArea element defined at the top
-            const currentTextArea = textArea || document.getElementById('textArea');
+            const currentTextArea = textArea || document.getElementById('watermark_text');
             const currentMaxCharsElement = maxCharsElement || document.getElementById('maxChars');
             
             if (!currentTextArea || !currentMaxCharsElement) return;
@@ -604,12 +603,18 @@
                 progressBar.style.width = `${Math.min(progress, 100)}%`;
                 
                 // Add color coding for progress bar
-                if (progress > 90) {
+                if (progress > 100) {
+                    progressBar.style.backgroundColor = '#c0392b'; // Dark Red for over capacity
+                    showFieldError('watermark_text', `⚠️ Teks terlalu panjang! Maksimal ${maxCharsNum} karakter untuk gambar/parameter ini.`);
+                } else if (progress > 90) {
                     progressBar.style.backgroundColor = '#e74c3c';
+                    clearFieldError('watermark_text');
                 } else if (progress > 70) {
                     progressBar.style.backgroundColor = '#f39c12';
+                    clearFieldError('watermark_text');
                 } else {
                     progressBar.style.backgroundColor = '#27ae60';
+                    clearFieldError('watermark_text');
                 }
             }
         }
@@ -696,9 +701,15 @@
                 
                 // Validate watermark text
                 const textField = document.getElementById('watermark_text');
+                const maxCharsEl = document.getElementById('maxChars');
                 if (!textField || !textField.value.trim()) {
                     showFieldError('watermark_text', '✍️ Silakan masukkan teks watermark!');
                     errorMessages.push('Teks watermark belum diisi');
+                    isValid = false;
+                } else if (maxCharsEl && textField.value.length > parseInt(maxCharsEl.textContent || '1000')) {
+                    const maxAllowed = parseInt(maxCharsEl.textContent);
+                    showFieldError('watermark_text', `⚠️ Teks melebihi kapasitas gambar! Maksimal ${maxAllowed} karakter.`);
+                    errorMessages.push(`Teks melebihi kapasitas (Maks: ${maxAllowed} karakter)`);
                     isValid = false;
                 }
                 

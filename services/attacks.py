@@ -4,125 +4,101 @@ import math
 
 class Attack:
     @staticmethod
+    def gaussian_noise(img: np.ndarray, std=10):
+        img = img.copy()
+        noise = np.random.normal(0, std, img.shape).astype(np.float32)
+        noisy_img = cv2.add(img.astype(np.float32), noise)
+        return np.clip(noisy_img, 0, 255).astype(np.uint8)
+
+    @staticmethod
+    def salt_pepper_noise(img: np.ndarray, prob=0.01):
+        img = img.copy()
+        rnd = np.random.rand(*img.shape[:2])
+        if img.ndim == 3:
+            img[rnd < prob/2] = [0, 0, 0]
+            img[rnd > 1 - prob/2] = [255, 255, 255]
+        else:
+            img[rnd < prob/2] = 0
+            img[rnd > 1 - prob/2] = 255
+        return img
+
+    @staticmethod
+    def median_filter(img: np.ndarray, kernel_size=3):
+        return cv2.medianBlur(img, kernel_size)
+
+    @staticmethod
+    def gaussian_blur(img: np.ndarray, kernel_size=5, sigma=1.0):
+        return cv2.GaussianBlur(img, (kernel_size, kernel_size), sigma)
+
+    @staticmethod
+    def jpeg_compression(img: np.ndarray, quality=70):
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
+        result, encimg = cv2.imencode('.jpg', img, encode_param)
+        return cv2.imdecode(encimg, cv2.IMREAD_UNCHANGED)
+
+    @staticmethod
+    def rotation(img: np.ndarray, angle=5):
+        h, w = img.shape[:2]
+        center = (w // 2, h // 2)
+        M = cv2.getRotationMatrix2D(center, angle, 1.0)
+        return cv2.warpAffine(img, M, (w, h), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
+
+    @staticmethod
+    def scaling(img: np.ndarray, scale_factor=0.8):
+        h, w = img.shape[:2]
+        new_w, new_h = int(w * scale_factor), int(h * scale_factor)
+        scaled = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_LINEAR)
+        return cv2.resize(scaled, (w, h), interpolation=cv2.INTER_LINEAR)
+
+    @staticmethod
+    def cropping(img: np.ndarray, crop_ratio=0.1):
+        img_copy = img.copy()
+        h, w = img_copy.shape[:2]
+        crop_h, crop_w = int(h * crop_ratio), int(w * crop_ratio)
+        if img_copy.ndim == 3:
+            img_copy[:crop_h, :] = 0
+            img_copy[-crop_h:, :] = 0
+            img_copy[:, :crop_w] = 0
+            img_copy[:, -crop_w:] = 0
+        else:
+            img_copy[:crop_h, :] = 0
+            img_copy[-crop_h:, :] = 0
+            img_copy[:, :crop_w] = 0
+            img_copy[:, -crop_w:] = 0
+        return img_copy
+
+    @staticmethod
     def blur(img: np.ndarray):
         return cv2.blur(img, (2, 2))
 
     @staticmethod
     def rotate180(img: np.ndarray):
-        img = img.copy()
-        angle = 180
-        scale = 1.0
-        w = img.shape[1]
-        h = img.shape[0]
-        rangle = np.deg2rad(angle)  # angle in radians
-        nw = (abs(np.sin(rangle) * h) + abs(np.cos(rangle) * w)) * scale
-        nh = (abs(np.cos(rangle) * h) + abs(np.sin(rangle) * w)) * scale
-        rot_mat = cv2.getRotationMatrix2D((nw * 0.5, nh * 0.5), angle, scale)
-        rot_move = np.dot(rot_mat, np.array(
-            [(nw - w) * 0.5, (nh - h) * 0.5, 0]))
-        rot_mat[0, 2] += rot_move[0]
-        rot_mat[1, 2] += rot_move[1]
-        return cv2.warpAffine(img, rot_mat, (int(math.ceil(nw)), int(math.ceil(nh))), flags=cv2.INTER_LANCZOS4)
+        return cv2.rotate(img, cv2.ROTATE_180)
 
     @staticmethod
     def rotate90(img: np.ndarray):
-        img = img.copy()
-        angle = 90
-        scale = 1.0
-        w = img.shape[1]
-        h = img.shape[0]
-        rangle = np.deg2rad(angle)  # angle in radians
-        nw = (abs(np.sin(rangle) * h) + abs(np.cos(rangle) * w)) * scale
-        nh = (abs(np.cos(rangle) * h) + abs(np.sin(rangle) * w)) * scale
-        rot_mat = cv2.getRotationMatrix2D((nw * 0.5, nh * 0.5), angle, scale)
-        rot_move = np.dot(rot_mat, np.array(
-            [(nw - w) * 0.5, (nh - h) * 0.5, 0]))
-        rot_mat[0, 2] += rot_move[0]
-        rot_mat[1, 2] += rot_move[1]
-        return cv2.warpAffine(img, rot_mat, (int(math.ceil(nw)), int(math.ceil(nh))), flags=cv2.INTER_LANCZOS4)
+        return cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
 
     @staticmethod
     def chop5(img: np.ndarray):
-        img = img.copy()
-        w, h = img.shape[:2]
-        return img[int(w * 0.05):, :]
-
-    @staticmethod
-    def chop10(img: np.ndarray):
-        img = img.copy()
-        w, h = img.shape[:2]
-        return img[int(w * 0.1):, :]
-
-    @staticmethod
-    def chop30(img: np.ndarray):
-        img = img.copy()
-        w, h = img.shape[:2]
-        return img[int(w * 0.3):, :]
-
-    @staticmethod
-    def gray(img: np.ndarray):
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        return gray
+        return Attack.cropping(img, 0.05)
 
     @staticmethod
     def saltnoise(img: np.ndarray):
-        img = img.copy()
-        for k in range(1000):
-            i = int(np.random.random() * img.shape[1])
-            j = int(np.random.random() * img.shape[0])
-            if img.ndim == 2:
-                img[j, i] = 255
-            elif img.ndim == 3:
-                img[j, i, 0] = 255
-                img[j, i, 1] = 255
-                img[j, i, 2] = 255
-        return img
-
-    @staticmethod
-    def randline(img: np.ndarray):
-        img = img.copy()
-        cv2.rectangle(img, (384, 0), (510, 128), (0, 255, 0), 3)
-        cv2.rectangle(img, (0, 0), (300, 128), (255, 0, 0), 3)
-        cv2.line(img, (0, 0), (511, 511), (255, 0, 0), 5)
-        cv2.line(img, (0, 511), (511, 0), (255, 0, 255), 5)
-        return img
-
-    @staticmethod
-    def cover(img: np.ndarray):
-        img = img.copy()
-        cv2.circle(img, (256, 256), 63, (0, 0, 255), -1)
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        cv2.putText(img, 'Just DO it ', (10, 500), font, 4, (255, 255, 0), 2)
-        return img
+        return Attack.salt_pepper_noise(img, 0.01)
 
     @staticmethod
     def brighter10(img: np.ndarray):
-        img = img.copy()
-        w, h = img.shape[:2]
-        for xi in range(0, w):
-            for xj in range(0, h):
-                img[xi, xj, 0] = int(img[xi, xj, 0] * 1.1)
-                img[xi, xj, 1] = int(img[xi, xj, 1] * 1.1)
-                img[xi, xj, 2] = int(img[xi, xj, 2] * 1.1)
-        return img
+        return np.clip(img.astype(np.float32) * 1.1, 0, 255).astype(np.uint8)
 
     @staticmethod
     def darker10(img: np.ndarray):
-        img = img.copy()
-        w, h = img.shape[:2]
-        for xi in range(0, w):
-            for xj in range(0, h):
-                img[xi, xj, 0] = int(img[xi, xj, 0] * 0.9)
-                img[xi, xj, 1] = int(img[xi, xj, 1] * 0.9)
-                img[xi, xj, 2] = int(img[xi, xj, 2] * 0.9)
-        return img
+        return np.clip(img.astype(np.float32) * 0.9, 0, 255).astype(np.uint8)
 
     @staticmethod
     def largersize(img: np.ndarray):
-        w, h = img.shape[:2]
-        return cv2.resize(img, (int(h * 1.5), w))
+        return Attack.scaling(img, 1.5)
 
     @staticmethod
     def smallersize(img: np.ndarray):
-        w, h = img.shape[:2]
-        return cv2.resize(img, (int(h * 0.5), w))
+        return Attack.scaling(img, 0.5)
